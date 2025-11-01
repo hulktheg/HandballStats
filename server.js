@@ -13,13 +13,28 @@
 // Auf Render/Vercel hosten -> bekommst du eine URL wie
 // https://dein-service.onrender.com
 //
-// Diese URL trägst du später FRONTEND-SEITIG als API_BASE ein.
-
 const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
 
 const app = express();
+
+// -----------------------------------
+// CORS erlauben (wichtig für GitHub Pages)
+// -----------------------------------
+// Dein Frontend läuft von https://hulktheg.github.io
+// Wir sagen jetzt dem Browser explizit: das ist erlaubt.
+// Variante 1 (sicherer): Nur GitHub Pages Domain erlauben
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://hulktheg.github.io");
+  res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  // Preflight (OPTIONS) beantworten
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // Hilfsfunktion: Bundesliga Tabelle scrapen
 // Quelle: öffentlich sichtbare HBL-Tabelle z.B. bei sport.de zeigt
