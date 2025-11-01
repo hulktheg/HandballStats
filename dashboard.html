@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Handball Dashboard</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">HBL</div>
+      <div class="brand-text">
+        <div class="brand-name">Handball Stats</div>
+        <div class="brand-sub">Bundesliga 25/26</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="#">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">🏆</span>
+        <span class="nav-label">Tabelle</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">📰</span>
+        <span class="nav-label">News</span>
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Einstellungen</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logoutBtn">
+        <span class="logout-icon">🚪</span>
+        <span class="logout-label">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Sidebar umschalten">☰</button>
+        <div class="page-title">Handball Dashboard</div>
+        <div class="page-subtitle">Live Überblick • Handball-Bundesliga 2025/26</div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="search-wrapper">
+          <input class="search-input" type="text" placeholder="Suche Spieler, Teams..." />
+          <span class="search-icon">🔍</span>
+        </div>
+
+        <button class="notif-btn" aria-label="Benachrichtigungen">
+          🔔
+          <span class="notif-dot"></span>
+        </button>
+
+        <div class="profile">
+          <div class="avatar">IS</div>
+          <div class="profile-meta">
+            <div class="profile-name">Ibrahim Saleh</div>
+            <div class="profile-role">Admin</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+
+      <!-- KPI cards -->
+      <section class="grid kpi-grid">
+        <div class="card kpi-card">
+          <div class="kpi-top">
+            <div class="kpi-label">Tabellenführer</div>
+            <div class="kpi-icon">🥇</div>
+          </div>
+          <div class="kpi-value" id="leaderTeam">–</div>
+          <div class="kpi-change positive" id="leaderPoints">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-top">
+            <div class="kpi-label">Verfolger</div>
+            <div class="kpi-icon">🔥</div>
+          </div>
+          <div class="kpi-value" id="runnerTeam">–</div>
+          <div class="kpi-change positive" id="runnerPoints">–</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-top">
+            <div class="kpi-label">Ø Tore pro Spiel</div>
+            <div class="kpi-icon">🤾</div>
+          </div>
+          <div class="kpi-value" id="avgGoals">–</div>
+          <div class="kpi-change neutral">
+            Offensivstärke der Liga
+          </div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-top">
+            <div class="kpi-label">Nächstes Highlight-Spiel</div>
+            <div class="kpi-icon">📺</div>
+          </div>
+          <div class="kpi-value" id="nextMatchHeadline">
+            Füchse Berlin vs. THW Kiel
+          </div>
+          <div class="kpi-change positive" id="nextMatchMeta">
+            15. November • 18:00 • Berlin • Live
+          </div>
+        </div>
+      </section>
+
+      <!-- 2-column main content -->
+      <section class="grid main-grid">
+
+        <!-- Chart / Fan-Interesse -->
+        <div class="card chart-card">
+          <div class="card-head">
+            <div class="card-title">Zuschauer & Interesse (Demo)</div>
+            <div class="card-actions">
+              <button class="btn-ghost small">7 Tage</button>
+              <button class="btn-ghost small">30 Tage</button>
+            </div>
+          </div>
+
+          <div class="chart-placeholder">
+            <canvas id="chartCanvas"></canvas>
+            <div class="chart-fallback">
+              <div class="chart-fallback-title">Diagramm Platzhalter</div>
+              <div class="chart-fallback-desc">
+                Hier kannst du später echte Kennzahlen (Zuschauerzahlen, Stream-Views usw.) plotten.
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-stats-row">
+            <div class="chart-stat">
+              <div class="chart-stat-label">Ø Zuschauer</div>
+              <div class="chart-stat-value">8.300+</div>
+            </div>
+            <div class="chart-stat">
+              <div class="chart-stat-label">Auslastung Top-Halle</div>
+              <div class="chart-stat-value">THW Kiel Heim</div>
+            </div>
+            <div class="chart-stat">
+              <div class="chart-stat-label">TV / Stream Magnet</div>
+              <div class="chart-stat-value">Füchse Berlin</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEWS -->
+        <div class="card table-card">
+          <div class="card-head">
+            <div class="card-title">Aktuelle Bundesliga-News</div>
+            <div class="card-actions">
+              <button class="btn-ghost small" id="refreshNewsBtn">Refresh</button>
+            </div>
+          </div>
+
+          <div class="news-wrapper" id="newsList">
+            <!-- Wird per JS gefüllt -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Full-width: Tabelle -->
+      <section class="card standings-card">
+        <div class="card-head">
+          <div class="card-title">Handball-Bundesliga Tabelle (2025/26)</div>
+          <div class="card-actions">
+            <button class="btn-ghost small">Gesamt</button>
+            <button class="btn-ghost small">Heim</button>
+            <button class="btn-ghost small">Auswärts</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Team</th>
+                <th>Punkte</th>
+                <th>Spiele</th>
+                <th>S</th>
+                <th>U</th>
+                <th>N</th>
+                <th>Tore</th>
+                <th>Diff</th>
+              </tr>
+            </thead>
+            <tbody id="standingsBody">
+              <!-- wird via JS gerendert -->
+            </tbody>
+          </table>
+        </div>
+        <p class="table-footnote">
+          Quelle: sport.de / DAIKIN HBL (live scraped). SG Flensburg-Handewitt führt vor SC Magdeburg und THW Kiel.
+        </p>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-left">
+        <span class="footer-brand">HBL Dashboard</span>
+        <span class="footer-sep">•</span>
+        <span class="footer-copy">
+          © <span id="year"></span> Alle Rechte vorbehalten.
+        </span>
+      </div>
+      <div class="footer-right">
+        <a href="#" class="footer-link">Datenschutz</a>
+        <a href="#" class="footer-link">AGB</a>
+        <a href="#" class="footer-link">Support</a>
+      </div>
+    </footer>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Login • Handball Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body class="auth-body">
+
+  <main class="auth-wrapper">
+    <section class="auth-card">
+      <div class="auth-header">
+        <div class="auth-badge">DAIKIN HBL Dashboard</div>
+        <h1 class="auth-title">Anmelden</h1>
+        <p class="auth-desc">
+          Bitte melde dich an, um das Handball-Bundesliga Dashboard zu öffnen.
+        </p>
+      </div>
+
+      <form id="loginForm" class="auth-form" autocomplete="off">
+        <div class="auth-field">
+          <label for="username">Benutzername</label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            placeholder="admin"
+            required
+          />
+        </div>
+
+        <div class="auth-field">
+          <label for="password">Passwort</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+
+        <button type="submit" class="btn primary-btn auth-submit">
+          Login
+        </button>
+
+        <p class="auth-hint">
+          Demo Zugang: Benutzername <strong>admin</strong> /
+          Passwort <strong>handball</strong>
+        </p>
+
+        <p id="loginError" class="auth-error" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <footer class="auth-footer">
+      <p>© <span id="year"></span> Handball Bundesliga Dashboard. Alle Rechte vorbehalten.</p>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
