@@ -1,52 +1,67 @@
 // server.js
 //
-// Kleiner Express-Server für Handball-Bundesliga Dashboard.
-// - /api/standings   -> Tabelle (Platz, Team, Punkte, etc.)
-// - /api/news        -> Headlines / aktuelle Themen
+// Handball-Bundesliga API Backend
 //
-// Lokaler Start:
+// Features:
+//  - /api/standings   -> Tabelle (Rang, Team, Punkte, Tore, usw.)
+//  - /api/news        -> News-Schlagzeilen aus der HBL
+//  - /                -> Healthcheck
+//
+// Lokaler Test:
+//   cd hbl-dashboard-api
 //   npm install
 //   npm start
+//   Browser: http://localhost:3000
 //
-// Dann im Browser: http://localhost:3000/api/standings
+// Deployment (z.B. Render.com):
+//   - Neues Web Service aus diesem Repo
+//   - Build Command: npm install
+//   - Start Command: npm start
+//   - Dann bekommst du eine URL wie https://dein-api-service.onrender.com
 //
-// Auf Render/Vercel hosten -> bekommst du eine URL wie
-// https://dein-service.onrender.com
-//
+// Diese URL musst du dann im Frontend als API_BASE eintragen.
+
 const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
 
 const app = express();
 
-// -----------------------------------
-// CORS erlauben (wichtig für GitHub Pages)
-// -----------------------------------
-// Dein Frontend läuft von https://hulktheg.github.io
-// Wir sagen jetzt dem Browser explizit: das ist erlaubt.
-// Variante 1 (sicherer): Nur GitHub Pages Domain erlauben
+/**
+ * CORS erlauben
+ *
+ * Dein Frontend läuft auf GitHub Pages unter hulktheg.github.io
+ * Browser blockt sonst die Requests.
+ */
 app.use((req, res, next) => {
+  // Erlaubt deinem Frontend den Zugriff:
   res.header("Access-Control-Allow-Origin", "https://hulktheg.github.io");
+
+  // Erlaubte HTTP-Methoden:
   res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+  // Welche Header Anfragen dürfen:
   res.header("Access-Control-Allow-Headers", "Content-Type");
-  // Preflight (OPTIONS) beantworten
+
+  // Für Preflight Requests (OPTIONS):
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
   }
+
   next();
 });
 
-// Hilfsfunktion: Bundesliga Tabelle scrapen
-// Quelle: öffentlich sichtbare HBL-Tabelle z.B. bei sport.de zeigt
-// Rang, Team, Spiele, Siege/Unentschieden/Niederlagen, Tore, Diff, Punkte.
-// SG Flensburg-Handewitt wird dort aktuell als Tabellenführer geführt,
-// knapp vor SC Magdeburg und THW Kiel, mit Punkten wie "18:2". Diese Werte
-// stehen als Text in den Zeilen. (Stand aktuelle Saison 2025/26.) 
-// Die Struktur kann sich ändern -> ggf. Selektoren anpassen.
+/**
+ * scrapeStandings()
+ * Holt die Bundesliga-Tabelle von einer öffentlichen Sportseite (sport.de).
+ * sport.de zeigt Rang, Team, Spiele, Siege/Unentschieden/Niederlagen,
+ * Tore, Diff, Punkte (z.B. "18:2").
+ */
 async function scrapeStandings() {
   const url =
     "https://www.sport.de/handball/deutschland-hbl/ergebnisse-und-tabelle/";
 
+  // normalen Desktop-UserAgent mitsenden
   const { data: html } = await axios.get(url, {
     headers: {
       "User-Agent":
@@ -56,33 +71,35 @@ async function scrapeStandings() {
 
   const $ = cheerio.load(html);
 
-  // Wir holen den gesamten Body-Text, splitten in Zeilen und filtern Zeilen,
-  // die wie Team-Zeilen aussehen. Wir suchen typische Bundesligateams.
+  // sport.de rendert die Tabelle als Textblöcke.
+  // Wir schneiden alle Zeilen raus, die nach Bundesliga-Teams aussehen.
   const lines = $("body")
     .text()
     .split("\n")
-    .map(t => t.trim())
-    .filter(t =>
+    .map((t) => t.trim())
+    .filter((t) =>
       t.match(
-        /^\d+\s+(SG Flensburg|SC Magdeburg|THW Kiel|Füchse Berlin|Gummersbach|Rhein\-Neckar|Melsungen|Lemgo|Frisch Auf|Hamburg|Bergischer|Hannover|Erlangen|Stuttgart|Mind.+|Balingen)/i
+        /^\d+\s+(SG Flensburg|SC Magdeburg|THW Kiel|Füchse Berlin|Gummersbach|Rhein\-Neckar|Melsungen|Lemgo|Frisch Auf|Hamburg|Bergischer|Hannover|Erlangen|Stuttgart|Balingen|Mind.+)/i
       )
     );
 
-  // Jede Zeile enthält ungefähr:
-  // "1 SG Flensburg-Handewitt Flensburg-H 10 8 2 0 366:297 69 18:2"
+  // Beispiel-Zeile:
+  // "1 SG Flensburg-Handewitt ... 10 8 2 0 366:297 69 18:2"
   //
-  // Wir versuchen die letzten 8 Werte zu isolieren:
-  // games, wins, draws, losses, goals, diff, pointsFullMaybe, pointsMaybe2
-
+  // Aufbau:
+  // parts[0] = Rang
+  // parts[1..n-8] = Teamname
+  // last8 = [Spiele, Siege, Unentschieden, Niederlagen, Tore, Diff, Punkte(?), evtl. nochmal Punkte]
+  //
   const standings = [];
 
-  lines.forEach(line => {
+  lines.forEach((line) => {
     const parts = line.split(/\s+/);
 
-    // rank = erstes Token
+    // Rang ist erstes Wort
     const rank = parts[0];
 
-    // letze 8 Tokens
+    // letzten 8 Werte ziehen
     const last8 = parts.slice(-8);
     const [
       games,
@@ -95,14 +112,14 @@ async function scrapeStandings() {
       pointsMaybe2
     ] = last8;
 
-    // Team-Name = alles zwischen rank und diesen 8 Tokens
+    // Teamname = alles zwischen Rank und den letzten 8 Tokens
     const teamTokens = parts.slice(1, parts.length - 8);
     const teamName = teamTokens.join(" ");
 
-    // Punkte evtl "18:2" (Punkte:Minuspunkte)
+    // Punkte sind meist "18:2"
     const points = pointsMaybe2 ? pointsMaybe2 : pointsFullMaybe;
 
-    // Diff kann z.B. "69" sein. Falls kein +/- vorne steht, prefixen.
+    // Diff evtl. nur eine Zahl (z.B. "69") -> dann "+69" draus machen
     let diff = diffMaybe;
     if (!diff.startsWith("+") && !diff.startsWith("-")) {
       diff = `+${diff}`;
@@ -121,14 +138,15 @@ async function scrapeStandings() {
     });
   });
 
-  // Sortieren nach Rang, nur sicherheitshalber
   standings.sort((a, b) => a.rank - b.rank);
 
   return standings;
 }
 
-// Hilfsfunktion: News scrapen
-// sport.de / handball / magazin listet frische HBL-News:
+/**
+ * scrapeNews()
+ * Holt Headlines zu HBL-Teams/Spielern/Trainern/Verletzungen/etc.
+ */
 async function scrapeNews() {
   const url = "https://www.sport.de/handball/magazin/";
 
@@ -141,13 +159,13 @@ async function scrapeNews() {
 
   const $ = cheerio.load(html);
 
-  // Wir durchsuchen Headlines, die typisch Bundesliga-relevant sind:
-  // Kiel, Füchse Berlin, Magdeburg, Verletzung, Trainer etc.
   const newsItems = [];
   $("li, article").each((_, el) => {
     const headline = $(el).text().trim();
+
+    // wir filtern auf Bundesliga-Content
     if (
-      /HBL|Füchse|Magdeburg|Kiel|Gummersbach|Rhein\-Neckar|Löwen|Lemgo|Verletzung|Wechsel|Trainer|Topspiel|Berlin|THW/i.test(
+      /HBL|Füchse|Magdeburg|Kiel|Gummersbach|Rhein\-Neckar|Lemgo|Berlin|THW|Verletzung|Trainer|Topspiel|Wechsel/i.test(
         headline
       )
     ) {
@@ -155,38 +173,43 @@ async function scrapeNews() {
         headline,
         meta: "Handball-Bundesliga",
         text:
-          "Aktuelle Meldung aus der HBL (Transfers, Verletzungen, Topspiele, Trainer-Themen)."
+          "Aktuelle HBL-Meldung (Transfers, Verletzungen, Topspiele, Trainer-Themen)."
       });
     }
   });
 
-  // begrenzen auf Top 5
   return newsItems.slice(0, 5);
 }
 
-// API: Tabelle
+// ---------------- ROUTES ----------------
+
+// Tabelle
 app.get("/api/standings", async (req, res) => {
   try {
     const data = await scrapeStandings();
     res.json({ standings: data });
   } catch (err) {
     console.error("Fehler /api/standings:", err.message);
-    res.status(500).json({ error: "Standings konnten nicht geladen werden." });
+    res.status(500).json({
+      error: "Standings konnten nicht geladen werden."
+    });
   }
 });
 
-// API: News
+// News
 app.get("/api/news", async (req, res) => {
   try {
     const data = await scrapeNews();
     res.json({ news: data });
   } catch (err) {
     console.error("Fehler /api/news:", err.message);
-    res.status(500).json({ error: "News konnten nicht geladen werden." });
+    res.status(500).json({
+      error: "News konnten nicht geladen werden."
+    });
   }
 });
 
-// Healthcheck / Root
+// Healthcheck
 app.get("/", (req, res) => {
   res.json({
     ok: true,
@@ -195,7 +218,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// Wichtig für Render/Vercel: Port aus ENV nehmen, sonst 3000
+// Server starten (lokal oder bei Render)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`HBL Dashboard API läuft auf Port ${PORT}`);

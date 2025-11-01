@@ -1,30 +1,30 @@
-// app.js (Frontend)
+// app.js (Frontend Browser-Script)
 
-// =====================
-// KONFIG -> DEINE BACKEND-URL
-// =====================
-
-// HIER ANPASSEN:
-// Beispiel nach Deployment auf Render:
-// const API_BASE = "https://hbl-dashboard-api.onrender.com";
+// ==================================
+// BACKEND-API URL
+// ==================================
+//
+// Das hier MUSS auf dein deployed Backend zeigen.
+// Beispiel (Render):
 const API_BASE = "https://hbl-dashboard-api.onrender.com";
+// Wenn du lokal testest mit npm start im API-Ordner, wäre es stattdessen:
+// const API_BASE = "http://localhost:3000";
 
+
+// LOGIN / AUTH
 const DEMO_USER = "admin";
 const DEMO_PASS = "handball";
 
-const onLoginPage = window.location.pathname
-  .toLowerCase()
-  .endsWith("index.html") ||
-  window.location.pathname.toLowerCase().endsWith("/") ||
-  window.location.pathname.toLowerCase() === "" ;
+const pathLower = window.location.pathname.toLowerCase();
 
-const onDashboardPage = window.location.pathname
-  .toLowerCase()
-  .includes("dashboard");
+const onLoginPage =
+  pathLower.endsWith("index.html") ||
+  pathLower === "/" ||
+  pathLower === "" ||
+  // GitHub Pages kann ein Unterpfad sein z.B. /hbl-dashboard-frontend/
+  pathLower.endsWith("/hbl-dashboard-frontend/");
 
-// ----------------------
-// AUTH / LOGIN
-// ----------------------
+const onDashboardPage = pathLower.includes("dashboard.html");
 
 function setAuthed() {
   localStorage.setItem("isAuthed", "true");
@@ -34,8 +34,6 @@ function isAuthed() {
 }
 function doLogout() {
   localStorage.removeItem("isAuthed");
-
-  // Auf GitHub Pages heißt die Login-Seite index.html
   window.location.href = "index.html";
 }
 
@@ -44,7 +42,7 @@ if (onDashboardPage && !isAuthed()) {
   window.location.href = "index.html";
 }
 
-// Login-Formular behandeln
+// Login-Formular-Handling
 if (onLoginPage) {
   const loginForm = document.getElementById("loginForm");
   const loginError = document.getElementById("loginError");
@@ -65,7 +63,7 @@ if (onLoginPage) {
   }
 }
 
-// Logout
+// Logout Button
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
@@ -73,10 +71,8 @@ if (logoutBtn) {
   });
 }
 
-// ----------------------
-// SIDEBAR TOGGLE (mobile)
-// ----------------------
 
+// SIDEBAR TOGGLE (mobile)
 const sidebarToggle = document.getElementById("sidebarToggle");
 const sidebar = document.getElementById("sidebar");
 
@@ -88,25 +84,19 @@ if (sidebarToggle && sidebar) {
   document.addEventListener("click", (e) => {
     const isMobile = window.matchMedia("(max-width: 780px)").matches;
     if (!isMobile) return;
-
     if (sidebar.contains(e.target) || sidebarToggle.contains(e.target)) return;
-
     sidebar.classList.remove("open");
   });
 }
 
-// ----------------------
-// FOOTER YEAR
-// ----------------------
 
+// Footer Jahr
 document.querySelectorAll("#year").forEach((el) => {
   el.textContent = new Date().getFullYear();
 });
 
-// ----------------------
-// LADEN: TABELLE & NEWS
-// ----------------------
 
+// DATEN HOLEN: TABELLE + NEWS
 async function loadStandings() {
   try {
     const res = await fetch(`${API_BASE}/api/standings`);
@@ -114,7 +104,7 @@ async function loadStandings() {
 
     if (!data || !data.standings) return;
 
-    // Tabelle rendern
+    // Tabelle unten befüllen
     const tbody = document.getElementById("standingsBody");
     if (tbody) {
       tbody.innerHTML = "";
@@ -135,7 +125,7 @@ async function loadStandings() {
       });
     }
 
-    // KPI-Karten füllen
+    // KPI-Karten mit Tabellenführer + Verfolger
     if (data.standings.length > 0) {
       const leader = data.standings[0];
       const runner = data.standings[1];
@@ -154,9 +144,9 @@ async function loadStandings() {
       if (runner && runnerPointsEl)
         runnerPointsEl.textContent = `${runner.points} Punkte • ${runner.played} Spiele`;
 
-      // Ø Tore berechnen aus leader.goals "366:297"
+      // Ø Tore/Spiel aus Tabellenführer
       if (avgGoalsEl && leader && leader.goals) {
-        const [gf, ga] = leader.goals.split(":").map((n) => parseInt(n, 10));
+        const [gf, ga] = leader.goals.split(":").map(n => parseInt(n, 10));
         if (!isNaN(gf) && !isNaN(ga) && leader.played > 0) {
           const avgFor = Math.round(gf / leader.played);
           const avgAgainst = Math.round(ga / leader.played);
@@ -196,7 +186,7 @@ async function loadNews() {
   }
 }
 
-// Refresh Button für News
+// News Refresh Button
 const refreshNewsBtn = document.getElementById("refreshNewsBtn");
 if (refreshNewsBtn) {
   refreshNewsBtn.addEventListener("click", () => {
@@ -204,7 +194,7 @@ if (refreshNewsBtn) {
   });
 }
 
-// Wenn wir gerade auf dem Dashboard sind:
+// beim Aufruf vom Dashboard Daten laden
 if (onDashboardPage && isAuthed()) {
   loadStandings();
   loadNews();

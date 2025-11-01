@@ -1,7 +1,7 @@
 {
   "name": "hbl-dashboard-api",
   "version": "1.0.0",
-  "description": "Handball Bundesliga Dashboard API",
+  "description": "Handball Bundesliga Dashboard API (Standings + News Scraper)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -12,4 +12,3 @@
     "express": "^4.19.0"
   }
 }
-
